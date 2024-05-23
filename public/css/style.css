@@ -1,0 +1,15 @@
+body {
+    font-size: 12px;
+    font-family: Arial, sans-serif;
+    background-color: #ECF0F5;
+}
+
+button.enregistrer {
+    background-color: #0070EE;
+    color: #ffffff;
+}
+
+button.annuler {
+    background-color: #F39C12;
+    color: #ffffff;
+}
