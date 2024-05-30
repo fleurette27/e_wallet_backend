@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{asset('css/bootstrap.min.css')}}">
     <link rel="stylesheet" href="{{asset('css/style.css')}}">
 
-    <title>Exam</title>
+    <title>SeedPay</title>
 
     <script src="{{asset('js/jquery.js')}}"></script></script>
     <script src="{{asset('js/bootstrap.js')}}"></script>

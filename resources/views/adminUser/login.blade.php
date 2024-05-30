@@ -1,14 +1,15 @@
-@extends('./../layouts/template.blade.php')
+@extends('./../layouts/template')
 
 @section('page-content')
-<div class="row">
-    <div class="col-md-4"></div>
+<div class="row justify-content-center align-items-center" style="height: 100vh;">
+ <div class="col-md-4"></div>
     <div class="col-md-4 mt-2">
         <div class="card">
             <div class="card-body">
-                @if(session()->has('error'))
-                <li class="alert alert-danger">{{session()->get('error')}}</li>
-                @endif
+            @if(session()->has('statut'))
+                <li class="alert alert-danger">{{session()->get('statut')}}</li>
+            @endif
+
 
             <form action="{{route('adminLoginSubmit')}}" method="POST" class="form-product">
                 <!-- il est important d'indiquer la methode post et egalement creer une route post
@@ -42,7 +43,7 @@
                 <button type=submit class="btn btn-primary btn-sm mt-2">Connexion</button>
             </form>
             <p class="mt-2">Mot de passe oublié ? <a href="{{route('adminForgotView')}}">Réninitialiser le mot de passe !</a></p>
-            <p class="mt-2">Pas de compte ?  <a href="{{route('register')}}">Inscrivez_vous!</a></p>
+            <!-- <p class="mt-2">Pas de compte ?  <a href="{{route('adminRegister')}}">Inscrivez_vous!</a></p> -->
             </div>
         </div>
     </div>
@@ -50,6 +51,5 @@
 
 </div>
 
-
-  @endsection
+@endsection
 

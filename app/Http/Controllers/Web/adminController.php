@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AdminUserRequest;
 use App\Models\AdminUser;
-use App\Models\transaction;
-use App\Models\User;
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Str;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
@@ -26,7 +26,7 @@ class adminController extends Controller
         return view('adminUser.register');
     }
 
-    public function registerSubmit(Request $request)
+    public function registerSubmit(AdminUserRequest $request)
     {
         // Validation des données d'entrée
 
@@ -49,65 +49,52 @@ class adminController extends Controller
         // Connecter l'utilisateur directement
         $credentials = $request->only('email', 'password');
 
+        if (Auth::guard('admin')->attempt($credentials)) {
+            $user = Auth::guard('admin')->user();
+
+            if ($user->type === 0) {
+                return redirect()->route('adminListTransactions');
+            } elseif ($user->type == 1) {
+                return redirect()->route('adminListUsers');
+            } else {
+                return redirect()->route('adminListAdmins');
+            }
+        } else {
+            return redirect()->back()->with('statut', "Informations de connexion non reconnues");
+        }
+    }
+
+
+
+
+
+    public function loginSubmit(AdminUserRequest $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
+
+        $credentials = $request->only('email', 'password');
 
         if (Auth::guard('admin')->attempt($credentials)) {
+            $user = Auth::guard('admin')->user();
 
-            $request->session()->regenerate();
-
-            if (Auth::user()->type == 0) {
-                return redirect()->route('');
-            } elseif (Auth::user()->type == 1) {
-                return redirect()->route('');
+            if ($user->type === 0) {
+                return redirect()->route('adminListTransactions');
+            } elseif ($user->type == 1) {
+                return redirect()->route('adminListUsers');
             } else {
-                return redirect()->route('');
+                return redirect()->route('adminListAdmins');
             }
         } else {
-            return redirect()->back()->with('status', "Informations de connexions non reconnues");
-        }
-        // Rediriger vers une vue appropriée, par exemple vers le tableau de bord
-        return redirect()->route('')->with('status', 'Utilisateur enregistré et connecté avec succès');
-    }
-
-
-
-
-
-    public function loginSubmit(Request $request)
-    {
-
-        $request->validate(
-            [
-                'email' => 'required|email',
-                'password' => 'required'
-            ]
-        );
-
-        $input = $request->all();
-        $data = [
-            'email' => $input['email'],
-            'password' => $input['password']
-        ];
-
-        // check if the given user exists in db
-        if (Auth::guard('admin')->attempt(['email' => $data['email'], 'password' => $data['password']])) {
-
-            $request->session()->regenerate();
-            if (Auth::user()->type == 0) {
-                return redirect()->route('');
-            } elseif (Auth::user()->type == 1) {
-                return redirect()->route('');
-            } else {
-                return redirect()->back()->with('status', "Informations de connexions non reconnues");
-            }
-        } else {
-            return redirect()->route('')->with('status', "Utilisateur connecté avec succès");
+            return redirect()->back()->with('statut', "Informations de connexion non reconnues");
         }
     }
 
 
 
-
-    public function adminLogout(Request $request): RedirectResponse
+    public function adminLogout(Request $request)
     {
         Auth::guard('admin')->logout();
 
@@ -129,19 +116,27 @@ class adminController extends Controller
 
 
 
-    public function forgotPwdEmail(Request $request)
-    {
+    public function forgotPwdEmail(AdminUserRequest $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+    ]);
 
-        $request->validate(['email' => 'required|email']);
+    $user = AdminUser::where('email', $request->email)->first();
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
-
-        return $status === Password::RESET_LINK_SENT
-            ? back()->with(['status' => __($status)])
-            : back()->withstatuss(['email' => __($status)]);
+    if (!$user) {
+        return back()->with('error', 'Cet email n\'existe pas dans notre système.');
     }
+
+    $token = Password::getRepository()->create($user);
+
+    // Envoyer l'email avec le lien de réinitialisation et le token
+
+    Notification::send($user, new ResetPasswordNotification($token));
+
+    return back()->with('success', 'Un email de réinitialisation de mot de passe a été envoyé à votre adresse email.');
+}
+
 
 
 
@@ -155,8 +150,7 @@ class adminController extends Controller
     }
 
 
-
-    public function resetPwdForm(Request $request)
+    public function resetPwdForm(AdminUserRequest $request)
     {
         $request->validate([
             'token' => 'required',
@@ -166,154 +160,22 @@ class adminController extends Controller
 
         $status = Password::reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (AdminUser $user, string $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password)
-                ])->setRememberToken(Str::random(60));
+            function ($user, $password) { // Utiliser $user générique pour l'utilisateur
+                // Utiliser la classe AdminUser
+                AdminUser::where('email', $user['email'])
+                    ->update([
+                        'password' => Hash::make($password),
+                        'remember_token' => Str::random(60)
+                    ]);
 
-                $user->save();
-
+                // Émettre un événement de réinitialisation de mot de passe
                 event(new PasswordReset($user));
             }
         );
 
         return $status === Password::PASSWORD_RESET
-            ? redirect()->route('login')->with('status', __($status))
-            : back()->withstatuss(['email' => [__($status)]]);
+            ? redirect()->route('adminLogin')->with('status', __($status))
+            : back()->with('status', __($status)); // Utiliser 'status' au lieu de 'statuss'
     }
 
-
-
-
-    public function editName()
-    {
-        return view('');
-    }
-
-
-
-
-    public function updateName(Request $request, $userId)
-    {
-        $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
-
-        // Mise à jour du nom de l'utilisateur dans la base de données
-        AdminUser::where('id', $userId)->update(['name' => $request->name]);
-
-        return redirect()->back()->with('status', "Modification éffectuée avec succès");
-    }
-
-
-
-
-    public function editEmail()
-    {
-        return view('');
-    }
-
-
-
-
-
-    public function updateEmail(Request $request,  $userId)
-    {
-
-        $request->validate([
-            'email' => 'required|email|unique:users,email,',
-        ]);
-
-        AdminUser::where('id', $userId)->update(['email' => $request->email]);
-
-        return redirect()->back()->with('status', "Modification éffectuée avec succès");
-    }
-
-
-
-
-
-
-    public function listTransactions(Request $request)
-    {
-        $title = $request->input('title');
-        $date = $request->input('date');
-
-        $query = transaction::query();
-
-        if ($title) {
-            $query->where('title', 'like', '%' . $title . '%');
-        }
-
-        if ($date) {
-            $query->whereDate('date', $date);
-        }
-
-        $transactions = $query->latest()->paginate(10);
-
-        return view('', compact('transactions'));
-    }
-
-
-
-
-
-    public function listeUtilisateurs(Request $request)
-    {
-        $users = User::query();
-
-        // Recherche par nom
-        if ($request->has('name')) {
-            $users->where('name', 'like', '%' . $request->input('name') . '%');
-        }
-
-        // Recherche par email
-        if ($request->has('email')) {
-            $users->where('email', 'like', '%' . $request->input('email') . '%');
-        }
-
-        // Recherche par numéro de compte
-        if ($request->has('account_number')) {
-            $users->where('account_number', 'like', '%' . $request->input('account_number') . '%');
-        }
-
-        // Récupérer les utilisateurs paginés
-        $users = $users->latest()->paginate(10);
-
-        return view('', compact(''));
-    }
-
-
-
-
-    public function destroyUser($id)
-    {
-        $user = User::findOrFail($id);
-        $user->delete();
-
-        return redirect()->route('')->with('success', 'Utilisateur supprimé avec succès.');
-    }
-
-
-
-
-    public function listeAdmins(Request $request)
-    {
-        $admins = AdminUser::query();
-
-        // Recherche par nom
-        if ($request->has('name')) {
-            $admins->where('name', 'like', '%' . $request->input('name') . '%');
-        }
-
-        // Recherche par email
-        if ($request->has('email')) {
-            $admins->where('email', 'like', '%' . $request->input('email') . '%');
-        }
-
-        // Récupérer les administrateurs paginés
-        $admins = $admins->latest()->paginate(10);
-
-        return view('', compact('admins'));
-    }
 }

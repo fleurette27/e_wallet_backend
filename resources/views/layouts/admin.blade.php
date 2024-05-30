@@ -9,8 +9,8 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-     <!-- CSRF Token -->
-     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>Admin Page</title>
 
@@ -20,9 +20,7 @@
     <link href="https://cdn.datatables.net/buttons/1.2.4/css/buttons.dataTables.min.css" rel="stylesheet" />
     <link href="https://cdn.datatables.net/select/1.3.0/css/select.dataTables.min.css" rel="stylesheet" />
     <link href="{{ asset('backend/vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
 
     <!-- Custom styles for this template-->
     <link href="{{ asset('backend/css/sb-admin-2.min.css') }}" rel="stylesheet">
@@ -35,7 +33,7 @@
     <div id="wrapper">
 
         <!-- Sidebar -->
-            @include('partials.sidebar')
+        @include('partials.sidebar')
         <!-- End of Sidebar -->
 
         <!-- Content Wrapper -->
@@ -58,19 +56,19 @@
 
                         <!-- Nav Item - User Information -->
                         <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Admin</span>
-                                <img class="img-profile rounded-circle"
-                                    src="{{ asset('backend/img/undraw_profile.svg') }}">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{Auth::user()->name}}</span>
+                                <img class="img-profile rounded-circle" src="{{ asset('backend/img/undraw_profile.svg') }}">
                             </a>
                             <!-- Dropdown - User Information -->
-                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                                aria-labelledby="userDropdown">
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
                                 <a class="dropdown-item" href="#" onclick="event.preventDefault();document.getElementById('logout-form').submit();">
                                     <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
+                                    Deconnexion
                                 </a>
+                               
+                                <form id="logout-form" action="{{ route('adminLogout') }}" method="POST" style="display: none;">
+                                    @csrf
                                 </form>
                             </div>
                         </li>
@@ -81,12 +79,12 @@
                 <!-- End of Topbar -->
 
                 @if(session()->has('message'))
-                    <div class="alert alert-{{ session()->get('alert-type') }} alert-dismissible fade show" role="alert" id="alert-message">
-                        {{ session()->get('message') }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
+                <div class="alert alert-{{ session()->get('alert-type') }} alert-dismissible fade show" role="alert" id="alert-message">
+                    {{ session()->get('message') }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
                 @endif
 
                 <!-- Begin Page Content -->
@@ -100,7 +98,7 @@
             <footer class="sticky-footer bg-white">
                 <div class="container my-auto">
                     <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; Sb-Admin</span>
+                        <span>Copyright &copy; SeedPay-Admin</span>
                     </div>
                 </div>
             </footer>
@@ -118,23 +116,22 @@
     </a>
 
     <!-- Logout Modal-->
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <h5 class="modal-title" id="exampleModalLabel">Etes-vous sur?</h5>
                     <button class="close" type="button" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-body">Selectionnez Deconnexion </div>
                 <div class="modal-footer">
-                  <form action="" method="POST">
-                    @csrf
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <button class="btn btn-primary" type="submit">Logout</button>
-                  </form>
+                    <form action="" method="POST">
+                        @csrf
+                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Annuler</button>
+                        <button class="btn btn-primary" type="submit">Deconnexion</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -166,82 +163,83 @@
 
     <script>
         $(function() {
-  let copyButtonTrans = 'copy'
-  let csvButtonTrans = 'csv'
-  let excelButtonTrans = 'excel'
-  let pdfButtonTrans = 'pdf'
-  let printButtonTrans = 'print'
-  let colvisButtonTrans = 'Column visibility'
-  let languages = {
-    'en': 'https://cdn.datatables.net/plug-ins/1.10.19/i18n/English.json'
-  };
-  $.extend(true, $.fn.dataTable.Buttons.defaults.dom.button, { className: 'btn' })
-  $.extend(true, $.fn.dataTable.defaults, {
-    language: {
-      url: languages['{{ app()->getLocale() }}']
-    },
-    columnDefs: [{
-        orderable: false,
-        className: 'select-checkbox',
-        targets: 0
-    }, {
-        orderable: false,
-        searchable: false,
-        targets: -1
-    }],
-    select: {
-      style:    'multi+shift',
-      selector: 'td:first-child'
-    },
-    order: [],
-    scrollX: true,
-    pageLength: 100,
-    dom: 'lBfrtip<"actions">',
-    buttons: [
-      {
-        extend: 'copy',
-        className: 'btn-outline-secondary mx-2',
-        text: copyButtonTrans,
-        exportOptions: {
-          columns: ':visible'
-        }
-      },
-      {
-        extend: 'csv',
-        className: 'btn-outline-secondary mx-2',
-        text: csvButtonTrans,
-        exportOptions: {
-          columns: ':visible'
-        }
-      },
-      {
-        extend: 'excel',
-        className: 'btn-outline-secondary mx-2',
-        text: excelButtonTrans,
-        exportOptions: {
-          columns: ':visible'
-        }
-      },
-      {
-        extend: 'pdf',
-        className: 'btn-outline-secondary mx-2',
-        text: pdfButtonTrans,
-        exportOptions: {
-          columns: ':visible'
-        }
-      },
-      {
-        extend: 'print',
-        className: 'btn-outline-secondary mx-2',
-        text: printButtonTrans,
-        exportOptions: {
-          columns: ':visible'
-        }
-      },
-    ]
-  });
-  $.fn.dataTable.ext.classes.sPageButton = '';
-});
+            let copyButtonTrans = 'copy'
+            let csvButtonTrans = 'csv'
+            let excelButtonTrans = 'excel'
+            let pdfButtonTrans = 'pdf'
+            let printButtonTrans = 'print'
+            let colvisButtonTrans = 'Column visibility'
+            let languages = {
+                'en': 'https://cdn.datatables.net/plug-ins/1.10.19/i18n/English.json'
+            };
+            $.extend(true, $.fn.dataTable.Buttons.defaults.dom.button, {
+                className: 'btn'
+            })
+            $.extend(true, $.fn.dataTable.defaults, {
+                language: {
+                    url: languages['{{ app()->getLocale() }}']
+                },
+                columnDefs: [{
+                    orderable: false,
+                    className: 'select-checkbox',
+                    targets: 0
+                }, {
+                    orderable: false,
+                    searchable: false,
+                    targets: -1
+                }],
+                select: {
+                    style: 'multi+shift',
+                    selector: 'td:first-child'
+                },
+                order: [],
+                scrollX: true,
+                pageLength: 100,
+                dom: 'lBfrtip<"actions">',
+                buttons: [{
+                        extend: 'copy',
+                        className: 'btn-outline-secondary mx-2',
+                        text: copyButtonTrans,
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                    {
+                        extend: 'csv',
+                        className: 'btn-outline-secondary mx-2',
+                        text: csvButtonTrans,
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                    {
+                        extend: 'excel',
+                        className: 'btn-outline-secondary mx-2',
+                        text: excelButtonTrans,
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                    {
+                        extend: 'pdf',
+                        className: 'btn-outline-secondary mx-2',
+                        text: pdfButtonTrans,
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                    {
+                        extend: 'print',
+                        className: 'btn-outline-secondary mx-2',
+                        text: printButtonTrans,
+                        exportOptions: {
+                            columns: ':visible'
+                        }
+                    },
+                ]
+            });
+            $.fn.dataTable.ext.classes.sPageButton = '';
+        });
     </script>
     @stack('script-alt')
     <!-- Page level custom scripts -->

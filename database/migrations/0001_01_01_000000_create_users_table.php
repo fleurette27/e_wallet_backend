@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->date('dob');//dateOfBirth
-            $table->string('PhoneNumber');
+            $table->string('phoneNumber');
             $table->decimal('balance', 10, 2)->default(0);
             $table->String('account_number')->unique();
             $table->rememberToken();

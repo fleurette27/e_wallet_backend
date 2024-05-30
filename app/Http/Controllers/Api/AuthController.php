@@ -47,6 +47,7 @@ class AuthController extends Controller
     $user->account_number=$accountNumber;
     $user->save();
 
+
     // Connexion automatique après la création du compte
     $credentials = $request->only('email', 'password');
 
@@ -54,13 +55,13 @@ class AuthController extends Controller
         return response(['message' => 'Informations de connexion non reconnues.'], 403);
     }
 
-
     // Récupération de l'utilisateur fraîchement enregistré
     $user = User::where('email', $request->email)->first();
 
     // Auth::loginUsingId($account->id);
 
-    return response()->json(['message' => 'Compte créé et connecté avec succès',
+    return response([
+    'message' => 'Compte créé et connecté avec succès',
     'user' => $user,
     'token' => $user->createToken('')->plainTextToken,],200);
     }
@@ -75,18 +76,17 @@ class AuthController extends Controller
         ]);
 
         if (!Auth::guard('web')->attempt($credentials)) {
-                return response()->json(['message' => 'Informations de connexion non reconnues.'], 403);
+                return response(['message' => 'Informations de connexion non reconnues.'], 403);
         }
 
         $user =User::where('email', $request->email)->first();
 
         // Si tu veux retourner le token d'authentification
-         $token = $user->createToken('')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Vous êtes  connecté avec succès.',
-            'token'=>$token,
-        ]);
+        $token = $user->createToken('')->plainTextToken;
+         return response([
+            'user' => auth()->user(),
+            'token' => $token,
+        ], 200);
 
     }
 
@@ -106,7 +106,7 @@ class AuthController extends Controller
                 'user'=> $user,
             ]);
         } else {
-            return response()->json(['error' => 'Erreur', 'message' => 'Utilisateur non trouvé.']);
+            return response(['error' => 'Erreur', 'message' => 'Utilisateur non trouvé.']);
         }
     }
 
@@ -119,7 +119,7 @@ class AuthController extends Controller
         // Mise à jour du nom de l'utilisateur dans la base de données
         User::where('id', $userId)->update(['name' => $request->name]);
 
-        return response()->json(['message' => 'Nom d\'utilisateur mis à jour avec succès'], 200);
+        return response(['message' => 'Nom d\'utilisateur mis à jour avec succès'], 200);
     }
 
 
@@ -139,13 +139,13 @@ class AuthController extends Controller
 
         // Vérifier si le mot de passe actuel correspond
         if (!Hash::check($request->currentPassword, $user->password)) {
-            return response()->json(['message' => 'L\'actuel mot de passe est incorrect'], 400);
+            return response(['message' => 'L\'actuel mot de passe est incorrect'], 400);
         }
 
         // Mettre à jour le mot de passe de l'utilisateur
         $user->update(['password' =>Hash::make($request->newPassword)]);
 
-        return response()->json([
+        return response([
             'message' => 'Mot de passe mis à jour avec succès',
         ], 200);
     }
@@ -161,8 +161,7 @@ class AuthController extends Controller
 
         User::where('id', $userId)->update(['email' => $request->email]);
 
-
-        return response()->json([
+        return response([
             'message' => 'Adresse e-mail mise à jour avec succès',
         ], 200);
     }
@@ -177,7 +176,7 @@ class AuthController extends Controller
 
           User::where('id', $userId)->update(['phoneNumber' => $request->phoneNumber]);
 
-        return response()->json(['message' => 'Numéro de téléphone mis à jour avec succès'], 200);
+        return response(['message' => 'Numéro de téléphone mis à jour avec succès'], 200);
     }
 
 
@@ -195,10 +194,10 @@ class AuthController extends Controller
 
             // Vérifier si l'utilisateur a des transactions
             if ($userTransactions->isEmpty()) {
-                return response()->json(['message' => 'Aucune transaction trouvée pour cet utilisateur.'], 404);
+                return response(['message' => 'Aucune transaction trouvée pour cet utilisateur.'], 404);
             }
 
-            return response()->json(['transactions' => $userTransactions]);
+            return response(['transactions' => $userTransactions]);
         }
 
 
@@ -216,10 +215,10 @@ class AuthController extends Controller
 
             // Vérifier si l'utilisateur a des transactions
             if ($userTransactions->isEmpty()) {
-                return response()->json(['message' => 'Aucune transaction trouvée pour cet utilisateur.'], 404);
+                return response(['message' => 'Aucune transaction trouvée pour cet utilisateur.'], 404);
             }
 
-            return response()->json(['transactions' => $userTransactions]);
+            return response(['transactions' => $userTransactions]);
         }
 
 
@@ -239,11 +238,11 @@ class AuthController extends Controller
         // Effectuer le dépôt
         try {
             $user->deposit($request->amount);
-            return response()->json(['message' => 'Dépôt effectué avec succès']);
+            return response(['message' => 'Dépôt effectué avec succès']);
         } catch (\InvalidArgumentException $e) {
-            return response()->json(['error' => 'Invalid Argument', 'message' => $e->getMessage()], 400);
+            return response(['error' => 'Invalid Argument', 'message' => $e->getMessage()], 400);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Internal Server Error', 'message' => $e->getMessage()], 500);
+            return response(['error' => 'Internal Server Error', 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -261,11 +260,11 @@ class AuthController extends Controller
         // Effectuer le retrait
         try {
             $user->withdraw($request->amount);
-            return response()->json(['message' => 'Retrait effectué avec succès']);
+            return response(['message' => 'Retrait effectué avec succès']);
         } catch (\InvalidArgumentException $e) {
-            return response()->json(['error' => 'Invalid Argument', 'message' => $e->getMessage()], 400);
+            return response(['error' => 'Invalid Argument', 'message' => $e->getMessage()], 400);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Internal Server Error', 'message' => $e->getMessage()], 500);
+            return response(['error' => 'Internal Server Error', 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -289,11 +288,11 @@ class AuthController extends Controller
         // Effectuer le transfert
         try {
             $sender->transfer($request->amount, $recipient);
-            return response()->json(['message' => 'Transfert d\'argent effectué avec succès']);
+            return response(['message' => 'Transfert d\'argent effectué avec succès']);
         } catch (\InvalidArgumentException $e) {
-            return response()->json(['error' => 'Invalid Argument', 'message' => $e->getMessage()], 400);
+            return response(['error' => 'Invalid Argument', 'message' => $e->getMessage()], 400);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Internal Server Error', 'message' => $e->getMessage()], 500);
+            return response(['error' => 'Internal Server Error', 'message' => $e->getMessage()], 500);
         }
      }
 

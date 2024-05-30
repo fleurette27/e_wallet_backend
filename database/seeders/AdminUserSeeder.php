@@ -29,8 +29,8 @@ class AdminUserSeeder extends Seeder
         $adminObj->save();
 
         $superAdminObj = new AdminUser();
-        $superAdminObj->name = 'Super Admin H';
-        $superAdminObj->email = 'superAdminH@gmail.com';
+        $superAdminObj->name = 'Super Admin Fleurette';
+        $superAdminObj->email = 'gfleurette27@gmail.com';
         $superAdminObj->password = Hash::make('123456789');
         $superAdminObj->type = 2;
         $superAdminObj->save();

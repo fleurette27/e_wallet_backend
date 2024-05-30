@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\fedaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/feda/transaction',[fedaController::class,'CreateTransaction']);
 
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
@@ -17,8 +19,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::put('/user/email/{userId}', [AuthController::class, 'updateEmail']);
     Route::put('/user/phone-number/{userId}', [AuthController::class, 'updatePhoneNumber']);
     Route::get('/transactions', [AuthController::class, 'getTransactions']);
-    Route::post('/recenteTransactions', [AuthController::class, 'getRecenteTransactions']);
+    Route::get('/recenteTransactions', [AuthController::class, 'getRecenteTransactions']);
     Route::post('/depot', [AuthController::class, 'makeDeposit']);
     Route::post('/retrait', [AuthController::class, 'makeWithdrawal']);
     Route::post('/transfert', [AuthController::class, 'transferMoney']);
+    Route::post('/feda/retrait',[fedaController::class,'pay']);
+    Route::post('/feda/depot',[fedaController::class,'createAndCheckFedaTransaction']);
+
 });
