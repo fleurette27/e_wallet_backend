@@ -50,7 +50,7 @@ class fedaController extends Controller
             // Envoyer l'URL de la transaction à l'utilisateur
             $responseData = [
                 'message' => 'URL de la transaction envoyée à l\'utilisateur',
-                'url' => $token->url
+                'token' => $token
             ];
 
             // Vérification du statut de la transaction

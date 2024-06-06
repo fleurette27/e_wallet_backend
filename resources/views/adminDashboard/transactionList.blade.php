@@ -30,9 +30,10 @@
                         <tr>
                             <th>No</th>
                             <th>Titre</th>
+                            <th>Utilisateur</th>
+                            <th>Numero_de_compte</th>
                             <th>Montant</th>
                             <th>Date</th>
-                            <th>Utilisateur</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -40,9 +41,10 @@
                         <tr>
                             <td>{{ $loop->iteration }}</td>
                             <td>{{ $transaction->title }}</td>
+                            <td>{{ $transaction->user->name }}</td>
+                            <td>{{ $transaction->user->account_number }}</td>
                             <td>{{ $transaction->amount }}</td>
                             <td>{{ $transaction->date }}</td>
-                            <td>{{ $transaction->user->name }}</td>
                         </tr>
                         @empty
                         <tr>

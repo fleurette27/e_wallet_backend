@@ -49,6 +49,9 @@ class adminController extends Controller
         // Connecter l'utilisateur directement
         $credentials = $request->only('email', 'password');
 
+        //pourquoi preciser le guard ,tout simplement parceque j'ai creer une autre tables de connexion en dehors
+        //de users soit admin_users pour separer les administrateurs des utulisateurs de l'application donc
+        //il est primordiale de preciser le guard('admin') car celui par defaut est web et il correspond a la tables users
         if (Auth::guard('admin')->attempt($credentials)) {
             $user = Auth::guard('admin')->user();
 
@@ -68,7 +71,7 @@ class adminController extends Controller
 
 
 
-    public function loginSubmit(AdminUserRequest $request)
+    public function loginSubmit(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
@@ -116,7 +119,7 @@ class adminController extends Controller
 
 
 
-    public function forgotPwdEmail(AdminUserRequest $request)
+    public function forgotPwdEmail(Request $request)
 {
     $request->validate([
         'email' => 'required|email',
@@ -150,7 +153,7 @@ class adminController extends Controller
     }
 
 
-    public function resetPwdForm(AdminUserRequest $request)
+    public function resetPwdForm(Request $request)
     {
         $request->validate([
             'token' => 'required',

@@ -28,9 +28,9 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
+        'surname',
         'email',
         'password',
-        'dob',
         'phoneNumber',
     ];
 
@@ -84,7 +84,7 @@ class User extends Authenticatable
         ]);
     }
 
-    
+
     public function withdraw($amount)
     {
         // Assurez-vous que le montant retiré est positif et que le solde est suffisant
