@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\Rules\Password as PasswordRule;
+
 class AuthController extends Controller
 
 {
@@ -149,57 +151,76 @@ class AuthController extends Controller
         return response(['message' => 'Un nouvel OTP a été envoyé à votre adresse email.'], 200);
     }
 
-
+    //utulisation de lien profond au niveau de flutter pour le lien de reinitialisation
     public function sendResetLinkEmail(Request $request)
     {
 
         $request->validate(['email' => 'required|email']);
 
-        $user = User::where('email', $request->email)->first();
-        if (!$user) {
-            return response()->json(['message' => 'Utulisateur introuvable'], 404);
+
+        $recentRequests = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->where('created_at', '>=', now()->subHours(24)) // Limite les requêtes aux dernières 24 heures
+            ->count();
+
+        if ($recentRequests >= 3) { // Limiter à 3 demandes dans les dernières 24 heures
+            return response()->json(['message' => 'Trop de demandes de réinitialisation de mot de passe récentes. Veuillez réessayer plus tard.'], 429);
         }
 
+
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json(['message' => 'Utilisateur introuvable'], 404);
+        }
+
+
         $token = Str::random(60);
-        DB::table('password_resets')->insert([
+        DB::table('password_reset_tokens')->insert([
             'email' => $request->email,
             'token' => $token,
             'created_at' => now(),
         ]);
 
-        $link = "myapp://reset-password?token=" . $token;
-        
+
+        $link = URL::signedRoute('reset-password', ['token' => $token]);
+
         Mail::send('flutter.password_reset', ['link' => $link], function ($message) use ($request) {
             $message->to($request->email);
             $message->subject('Reset Password');
         });
 
-        return response()->json(['message' => 'Lien de reinisialisation envoyé']);
+        return response()->json(['message' => 'Lien de reinisialisation envoyé'], 200);
     }
 
     public function resetPassword(Request $request)
     {
         $request->validate([
             'token' => 'required',
-            'password' => 'required|confirmed|min=6',
+            'password' => 'required|confirmed|min:6',
         ]);
 
-        $passwordReset = DB::table('password_resets')->where('token', $request->token)->first();
+        // Vérifier si le jeton de réinitialisation est valide et non expiré
+        $passwordReset = DB::table('password_reset_tokens')
+            ->where('token', $request->token)
+            ->where('created_at', '>=', now()->subHours(24)) // Durée de validité de 24 heures
+            ->first();
+
         if (!$passwordReset) {
-            return response()->json(['message' => 'Token invalide'], 400);
+            return response()->json(['message' => 'Jeton invalide ou expiré'], 400);
         }
 
         $user = User::where('email', $passwordReset->email)->first();
         if (!$user) {
-            return response()->json(['message' => 'Utulisateur introuvable'], 404);
+            return response()->json(['message' => 'Utilisateur introuvable'], 404);
         }
 
         $user->password = Hash::make($request->password);
         $user->save();
 
-        DB::table('password_resets')->where('token', $request->token)->delete();
+        // Supprimer le jeton utilisé de la table password_reset_tokens
+        DB::table('password_reset_tokens')->where('token', $request->token)->delete();
 
-        return response()->json(['message' => 'Mot de passe modifié avec succès']);
+        return response()->json(['message' => 'Mot de passe modifié avec succès'], 200);
     }
 
 

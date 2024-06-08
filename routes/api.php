@@ -17,7 +17,7 @@ Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 //le lien pour l'email pour la reinitialisation du mot de passe
 Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail']);
 //le lien pour modifier le mot de passe
-Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset-password');
 
 // //pour l'integration de fedapay mais cela à été annulé
 // Route::post('/feda/transaction',[fedaController::class,'CreateTransaction']);
