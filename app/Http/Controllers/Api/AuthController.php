@@ -7,8 +7,10 @@ use App\Mail\SendOtpMail;
 use App\Models\transaction;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
@@ -58,7 +60,7 @@ class AuthController extends Controller
         return $accountNumber;
     }
 
-   
+
     public function register(Request $request)
     {
         $validated = $request->validate([
@@ -150,40 +152,55 @@ class AuthController extends Controller
 
     public function sendResetLinkEmail(Request $request)
     {
+
         $request->validate(['email' => 'required|email']);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        $user = User::where('email', $request->email)->first();
+        if (!$user) {
+            return response()->json(['message' => 'Utulisateur introuvable'], 404);
+        }
 
-        return $status === Password::RESET_LINK_SENT
-                    ? response()->json(['message' => __($status)], 200)
-                    : response()->json(['message' => __($status)], 400);
+        $token = Str::random(60);
+        DB::table('password_resets')->insert([
+            'email' => $request->email,
+            'token' => $token,
+            'created_at' => now(),
+        ]);
+
+        $link = "myapp://reset-password?token=" . $token;
+        
+        Mail::send('flutter.password_reset', ['link' => $link], function ($message) use ($request) {
+            $message->to($request->email);
+            $message->subject('Reset Password');
+        });
+
+        return response()->json(['message' => 'Lien de reinisialisation envoyé']);
     }
 
-
-    public function reset(Request $request)
+    public function resetPassword(Request $request)
     {
         $request->validate([
             'token' => 'required',
-            'email' => 'required|email',
-            'password' => ['required', 'confirmed', PasswordRule::defaults()],
+            'password' => 'required|confirmed|min=6',
         ]);
 
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function ($user, $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password)
-                ])->save();
-            }
-        );
+        $passwordReset = DB::table('password_resets')->where('token', $request->token)->first();
+        if (!$passwordReset) {
+            return response()->json(['message' => 'Token invalide'], 400);
+        }
 
-        return $status === Password::PASSWORD_RESET
-                    ? response()->json(['message' => __($status)], 200)
-                    : response()->json(['message' => __($status)], 400);
+        $user = User::where('email', $passwordReset->email)->first();
+        if (!$user) {
+            return response()->json(['message' => 'Utulisateur introuvable'], 404);
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        DB::table('password_resets')->where('token', $request->token)->delete();
+
+        return response()->json(['message' => 'Mot de passe modifié avec succès']);
     }
-
 
 
     public function getUserData()

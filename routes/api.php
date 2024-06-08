@@ -17,7 +17,7 @@ Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 //le lien pour l'email pour la reinitialisation du mot de passe
 Route::post('/forgot-password', [AuthController::class, 'sendResetLinkEmail']);
 //le lien pour modifier le mot de passe
-Route::post('/reset-password', [AuthController::class, 'reset']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 // //pour l'integration de fedapay mais cela à été annulé
 // Route::post('/feda/transaction',[fedaController::class,'CreateTransaction']);
@@ -44,7 +44,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/depot', [AuthController::class, 'makeDeposit']);
     //lorsque le retrait avec les agregateurs ont été un succes,on fait appel a ce lien pour enregistrer la transaction (retrait)
     Route::post('/retrait', [AuthController::class, 'makeWithdrawal']);
-    //le lien pour effectuer des transferts entre utulisateur ainsi que l'enregistrement de la transaction
+    //le lien pour effectuer des transferts entre utulisateur ainsi que l'enregistrement de la transaction(transfert)
     Route::post('/transfert', [AuthController::class, 'transferMoney']);
 
     // //le lien pour creer une transaction feda mais ce lien n'est plus utulisé

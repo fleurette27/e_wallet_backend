@@ -48,7 +48,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="5" class="text-center">Pas de transactions</td>
+                            <td colspan="6" class="text-center">Pas de transactions</td>
                         </tr>
                         @endforelse
                     </tbody>
